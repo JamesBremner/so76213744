@@ -1,5 +1,8 @@
-format costs
-g 0 1
+c a 8
+c b 9
+c c 7
+c d 8
+c e 6
 l a b 200
 l a c 270
 l a d 250

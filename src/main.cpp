@@ -3,6 +3,7 @@
 #include <climits>
 #include <cstring>
 #include <iostream>
+#include <fstream>
 #include "GraphTheory.h" //  https://github.com/JamesBremner/PathFinder
 
 class cTourist
@@ -43,7 +44,38 @@ private:
 
 void cTourist::read(const std::string &fname)
 {
-    readfile(g, fname);
+
+    g.clear();
+
+    std::ifstream ifs(fname);
+    if (!ifs.is_open())
+        throw std::runtime_error(
+            "Cannot open input file");
+
+    std::string stype, sn1, sn2, scost, directed, same;
+    ifs >> stype;
+
+    while (ifs.good())
+    {
+        switch (stype[0])
+        {
+        case 'l':
+            ifs >> sn1 >> sn2 >> scost;
+            g.wEdgeAttr(g.add(sn1, sn2), {scost});
+            g.wEdgeAttr(g.find(sn2, sn1), {scost});
+            break;
+        case 's':
+            ifs >> sn1;
+            g.startName(sn1);
+            break;
+        case 'c':
+            ifs >> sn1 >> scost;
+            g.wVertexAttr(g.find(sn1),{scost});
+            break;
+        }
+
+        ifs >> stype;
+    }
 
     visited.resize(g.vertexCount(), false);
 }

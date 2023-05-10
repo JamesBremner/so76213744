@@ -21,7 +21,7 @@ OBJ_starter = \
 	$(ODIR)/main.o \
 	$(ODIR)/cGraph.o \
 	$(ODIR)/GraphTheory.o \
-	$(ODIR)/readfile.o \
+
 
 ### COMPILE
 
