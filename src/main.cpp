@@ -5,11 +5,55 @@
 #include <iostream>
 #include "GraphTheory.h" //  https://github.com/JamesBremner/PathFinder
 
-// const int N = 5;
-
-int edgeWeight(const raven::graph::cGraph &g, int i, int j)
+class cTourist
 {
-    return atoi(g.rEdgeAttr(g.find(i, j), 0).c_str());
+public:
+    void read(const std::string &fname);
+    void TSPBB();
+
+    void display();
+
+private:
+    // final_path[] stores the final solution ie, the
+    // path of the salesman.
+    std::vector<int> final_path;
+
+    std::vector<int> curr_path;
+
+    // visited[] keeps track of the already visited nodes
+    // in a particular path
+    std::vector<bool> visited;
+
+    // Stores the final minimum weight of shortest tour.
+    int final_res = INT_MAX;
+
+    raven::graph::cGraph g;
+
+    void TSPRec(int curr_bound, int curr_weight,
+                int level);
+
+    int firstMin(int i);
+    int secondMin(int i);
+
+    int edgeWeight(int i, int j) const
+    {
+        return atoi(g.rEdgeAttr(g.find(i, j), 0).c_str());
+    }
+};
+
+void cTourist::read(const std::string &fname)
+{
+    readfile(g, fname);
+
+    visited.resize(g.vertexCount(), false);
+}
+
+void cTourist::display()
+{
+    std::cout << "Minimum cost : " << final_res << "\nPath Taken : ";
+    for (int n : final_path)
+        std::cout << g.userName(n) << " ";
+    std::cout << "\n";
 }
 
 // std::vector<std::vector<int>>
@@ -50,29 +94,16 @@ int edgeWeight(const raven::graph::cGraph &g, int i, int j)
 
 using namespace std;
 
-// final_path[] stores the final solution ie, the
-// path of the salesman.
-std::vector<int> final_path;
-
-std::vector<int> curr_path;
-
-// visited[] keeps track of the already visited nodes
-// in a particular path
-std::vector<bool> visited;
-
-// Stores the final minimum weight of shortest tour.
-int final_res = INT_MAX;
-
 // Function to find the minimum edge cost
 // having an end at the vertex i
-int firstMin(const raven::graph::cGraph &g, int i)
+int cTourist::firstMin(int i)
 {
     int min = INT_MAX;
     for (int k : g.adjacentOut(i))
     {
         if (k != i)
         {
-            int c = edgeWeight(g, i, k);
+            int c = edgeWeight( i, k);
             if (c < min)
                 min = c;
         }
@@ -82,7 +113,7 @@ int firstMin(const raven::graph::cGraph &g, int i)
 
 // function to find the second minimum edge cost
 // having an end at the vertex i
-int secondMin(const raven::graph::cGraph &g, int i)
+int cTourist::secondMin(int i)
 {
     int first = INT_MAX, second = INT_MAX;
     for (int j = 0; j < g.vertexCount(); j++)
@@ -90,7 +121,7 @@ int secondMin(const raven::graph::cGraph &g, int i)
         if (i == j)
             continue;
 
-        int c = edgeWeight(g, i, j);
+        int c = edgeWeight( i, j);
         if (c <= first)
         {
             second = first;
@@ -110,8 +141,8 @@ int secondMin(const raven::graph::cGraph &g, int i)
 //		 space tree
 // curr_path[] -> where the solution is being stored which
 //			 would later be copied to final_path[]
-void TSPRec(const raven::graph::cGraph &g, int curr_bound, int curr_weight,
-            int level)
+void cTourist::TSPRec(int curr_bound, int curr_weight,
+                      int level)
 {
     // base case is when we have reached level N which
     // means we have covered all the nodes once
@@ -124,7 +155,7 @@ void TSPRec(const raven::graph::cGraph &g, int curr_bound, int curr_weight,
             // curr_res has the total weight of the
             // solution we got
             int curr_res = curr_weight +
-                           edgeWeight(g, curr_path[level - 1], curr_path[0]);
+                           edgeWeight( curr_path[level - 1], curr_path[0]);
 
             // Update final result and final path if
             // current result is better.
@@ -149,17 +180,17 @@ void TSPRec(const raven::graph::cGraph &g, int curr_bound, int curr_weight,
             visited[i] == false)
         {
             int temp = curr_bound;
-            curr_weight += edgeWeight(g, curr_path[level - 1], i);
+            curr_weight += edgeWeight( curr_path[level - 1], i);
 
             // different computation of curr_bound for
             // level 2 from the other levels
             if (level == 1)
-                curr_bound -= ((firstMin(g, curr_path[level - 1]) +
-                                firstMin(g, i)) /
+                curr_bound -= ((firstMin(curr_path[level - 1]) +
+                                firstMin(i)) /
                                2);
             else
-                curr_bound -= ((secondMin(g, curr_path[level - 1]) +
-                                firstMin(g, i)) /
+                curr_bound -= ((secondMin(curr_path[level - 1]) +
+                                firstMin(i)) /
                                2);
 
             // curr_bound + curr_weight is the actual lower bound
@@ -172,12 +203,12 @@ void TSPRec(const raven::graph::cGraph &g, int curr_bound, int curr_weight,
                 visited[i] = true;
 
                 // call TSPRec for the next level
-                TSPRec(g, curr_bound, curr_weight, level + 1);
+                TSPRec(curr_bound, curr_weight, level + 1);
             }
 
             // Else we have to prune the node by resetting
             // all changes to curr_weight and curr_bound
-            curr_weight -= edgeWeight(g, curr_path[level - 1], i);
+            curr_weight -= edgeWeight( curr_path[level - 1], i);
             curr_bound = temp;
 
             // Also reset the visited array
@@ -191,7 +222,7 @@ void TSPRec(const raven::graph::cGraph &g, int curr_bound, int curr_weight,
 }
 
 // This function sets up final_path[]
-void TSPBB(const raven::graph::cGraph &g)
+void cTourist::TSPBB()
 {
 
     // Calculate initial lower bound for the root node
@@ -206,8 +237,8 @@ void TSPBB(const raven::graph::cGraph &g)
     // Compute initial bound
     // auto g = makeGraph( adj );
     for (int i = 0; i < g.vertexCount(); i++)
-        curr_bound += (firstMin(g, i) +
-                       secondMin(g, i));
+        curr_bound += (firstMin(i) +
+                       secondMin(i));
 
     // Rounding off the lower bound to an integer
     curr_bound = (curr_bound & 1) ? curr_bound / 2 + 1 : curr_bound / 2;
@@ -219,26 +250,19 @@ void TSPBB(const raven::graph::cGraph &g)
 
     // Call to TSPRec for curr_weight equal to
     // 0 and level 1
-    TSPRec(g, curr_bound, 0, 1);
+    TSPRec(curr_bound, 0, 1);
 }
 
 // Driver code
 int main()
 {
+    cTourist theTourist;
 
-    raven::graph::cGraph g;
-    // readfile( g, "../dat/data.txt" );
-    // readfile( g, "../dat/notmetric.txt" );
-    readfile(g, "../dat/so76213744.txt");
+    theTourist.read("../dat/so76213744.txt");
 
-    visited.resize(g.vertexCount(), false);
+    theTourist.TSPBB();
 
-    TSPBB(g);
-
-    cout << "Minimum cost : " << final_res << "\nPath Taken : ";
-    for (int n : final_path)
-        cout << g.userName(n) << " ";
-    cout << "\n";
+    theTourist.display();
 
     return 0;
 }
