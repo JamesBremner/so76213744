@@ -1,0 +1,14 @@
+format costs
+g 0 1
+l a b 200
+l a c 270
+l a d 250
+l a e 80
+l b c 120
+l b d 120
+l b e 100
+l c d 230
+l c e 180
+l d e 220
+
+
