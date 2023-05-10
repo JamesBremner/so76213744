@@ -56,44 +56,6 @@ void cTourist::display()
     std::cout << "\n";
 }
 
-// std::vector<std::vector<int>>
-// makeAdjacencyMatrix(const raven::graph::cGraph &g)
-// {
-//     std::vector<std::vector<int>> M;
-//     int N = g.vertexCount();
-//     for (int n1 = 0; n1 < N; n1++)
-//     {
-//         std::vector<int> row;
-//         for (int n2 = 0; n2 < N; n2++)
-//         {
-//             if (n1 == n2)
-//                 row.push_back(0);
-//             else
-//                 row.push_back(edgeWeight(g, n1, n2));
-//         }
-//         M.push_back(row);
-//     }
-//     return M;
-// }
-
-// raven::graph::cGraph
-// makeGraph(int adj[N][N])
-// {
-//     raven::graph::cGraph g;
-//     for (int n1 = 0; n1 < N; n1++)
-//     {
-//         for (int n2 = n1 + 1; n2 < N; n2++)
-//         {
-//             g.wEdgeAttr(
-//                 g.add(n1, n2),
-//                 {std::to_string(adj[n1][n2])});
-//         }
-//     }
-//     return g;
-// }
-
-using namespace std;
-
 // Function to find the minimum edge cost
 // having an end at the vertex i
 int cTourist::firstMin(int i)
