@@ -10,7 +10,8 @@ class cTourist
 {
 public:
     void read(const std::string &fname);
-    void TSPBB();
+
+    void Optimize();
 
     void display();
 
@@ -26,15 +27,21 @@ private:
     std::vector<bool> visited;
 
     // Stores the final minimum weight of shortest tour.
-    int final_res = INT_MAX;
+    int final_res;
+
+    int budget;
 
     raven::graph::cGraph g;
 
-    void TSPRec(int curr_bound, int curr_weight,
+    void TSPBB();
+    void TSPRec(int curr_bound,
+                int curr_weight,
                 int level);
 
     int firstMin(int i);
     int secondMin(int i);
+
+    void RemoveLeastInterest();
 
     int edgeWeight(int i, int j) const
     {
@@ -42,6 +49,34 @@ private:
     }
 };
 
+void cTourist::Optimize()
+{
+    TSPBB();
+    while( final_res > budget ) {
+        RemoveLeastInterest();
+        TSPBB();
+    }
+}
+
+void cTourist::RemoveLeastInterest()
+{
+    int min = INT_MAX;
+    int vmin;
+    for( int v = 0; v < g.vertexCount(); v++ )
+    {
+        int i = atoi(g.rVertexAttr(v,0).c_str());
+        if( i < min ) {
+            min = i;
+            vmin = v;
+    } }
+
+    std::cout << "Dropping " << g.userName(vmin) 
+        << " ( " << g.rVertexAttr(vmin,0) 
+        << " ) from itinerary\n";
+
+    g.remove(vmin);
+
+}
 void cTourist::read(const std::string &fname)
 {
 
@@ -70,7 +105,11 @@ void cTourist::read(const std::string &fname)
             break;
         case 'c':
             ifs >> sn1 >> scost;
-            g.wVertexAttr(g.find(sn1),{scost});
+            g.wVertexAttr(g.find(sn1), {scost});
+            break;
+        case 'b':
+            ifs >> scost;
+            budget = atoi(scost.c_str());
             break;
         }
 
@@ -78,13 +117,20 @@ void cTourist::read(const std::string &fname)
     }
 
     visited.resize(g.vertexCount(), false);
+
 }
 
 void cTourist::display()
 {
-    std::cout << "Minimum cost : " << final_res << "\nPath Taken : ";
+    std::cout << "Minimum cost : " << final_res
+              << " Budget : " << budget
+              << "\nPath Taken : ";
     for (int n : final_path)
+    {
+        if( n < 0 )
+            break;
         std::cout << g.userName(n) << " ";
+    }
     std::cout << "\n";
 }
 
@@ -97,7 +143,7 @@ int cTourist::firstMin(int i)
     {
         if (k != i)
         {
-            int c = edgeWeight( i, k);
+            int c = edgeWeight(i, k);
             if (c < min)
                 min = c;
         }
@@ -115,7 +161,7 @@ int cTourist::secondMin(int i)
         if (i == j)
             continue;
 
-        int c = edgeWeight( i, j);
+        int c = edgeWeight(i, j);
         if (c <= first)
         {
             second = first;
@@ -149,7 +195,7 @@ void cTourist::TSPRec(int curr_bound, int curr_weight,
             // curr_res has the total weight of the
             // solution we got
             int curr_res = curr_weight +
-                           edgeWeight( curr_path[level - 1], curr_path[0]);
+                           edgeWeight(curr_path[level - 1], curr_path[0]);
 
             // Update final result and final path if
             // current result is better.
@@ -174,7 +220,7 @@ void cTourist::TSPRec(int curr_bound, int curr_weight,
             visited[i] == false)
         {
             int temp = curr_bound;
-            curr_weight += edgeWeight( curr_path[level - 1], i);
+            curr_weight += edgeWeight(curr_path[level - 1], i);
 
             // different computation of curr_bound for
             // level 2 from the other levels
@@ -202,7 +248,7 @@ void cTourist::TSPRec(int curr_bound, int curr_weight,
 
             // Else we have to prune the node by resetting
             // all changes to curr_weight and curr_bound
-            curr_weight -= edgeWeight( curr_path[level - 1], i);
+            curr_weight -= edgeWeight(curr_path[level - 1], i);
             curr_bound = temp;
 
             // Also reset the visited array
@@ -254,7 +300,7 @@ int main()
 
     theTourist.read("../dat/so76213744.txt");
 
-    theTourist.TSPBB();
+    theTourist.Optimize();
 
     theTourist.display();
 
